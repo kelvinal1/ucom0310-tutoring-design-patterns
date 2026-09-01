@@ -1,0 +1,36 @@
+@startuml
+skinparam classAttributeIconSize 0
+
+interface Notificador {
+    + notificar(usuario: Usuario, mensaje: String): void
+}
+
+class NotificadorCorreo
+class NotificadorSms
+class NotificadorPush
+class NotificadorWhatsApp
+
+abstract class CreadorNotificador {
+    + crearNotificador(): Notificador
+    + notificar(usuario: Usuario, mensaje: String): void
+}
+
+class CreadorNotificadorCorreo
+class CreadorNotificadorSms
+class CreadorNotificadorPush
+class CreadorNotificadorWhatsApp
+
+Notificador <|.. NotificadorCorreo
+Notificador <|.. NotificadorSms
+Notificador <|.. NotificadorPush
+Notificador <|.. NotificadorWhatsApp
+
+CreadorNotificador <|-- CreadorNotificadorCorreo
+CreadorNotificador <|-- CreadorNotificadorSms
+CreadorNotificador <|-- CreadorNotificadorPush
+CreadorNotificador <|-- CreadorNotificadorWhatsApp
+
+CreadorNotificador --> Notificador : crea
+CreadorNotificador --> Usuario : utiliza
+
+@enduml

@@ -1,0 +1,29 @@
+@startuml
+skinparam classAttributeIconSize 0
+
+abstract class Usuario
+class Estudiante
+class Docente
+class HorarioDisponible
+class ReservaTutoria
+interface RepositorioReservas
+class RepositorioReservasEnMemoria
+interface Notificador
+class ServicioReservas
+class ReservaTutoriaBuilder
+abstract class CreadorNotificador
+
+Usuario <|-- Estudiante
+Usuario <|-- Docente
+Docente "1" *-- "0..*" HorarioDisponible
+ReservaTutoria --> Estudiante
+ReservaTutoria --> Docente
+ReservaTutoria --> HorarioDisponible
+RepositorioReservas <|.. RepositorioReservasEnMemoria
+ServicioReservas --> RepositorioReservas
+ServicioReservas --> Notificador
+ServicioReservas --> ReservaTutoriaBuilder
+ReservaTutoriaBuilder --> ReservaTutoria
+CreadorNotificador --> Notificador
+
+@enduml

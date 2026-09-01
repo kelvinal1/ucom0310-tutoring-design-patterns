@@ -1,0 +1,54 @@
+@startuml
+skinparam classAttributeIconSize 0
+
+class Estudiante
+class Docente
+class HorarioDisponible
+
+enum ModalidadTutoria {
+    ONLINE
+    PRESENCIAL
+}
+
+enum EstadoReserva {
+    PENDIENTE
+    CONFIRMADA
+    CANCELADA
+}
+
+class ReservaTutoria {
+    - id: String
+    - estudiante: Estudiante
+    - docente: Docente
+    - horario: HorarioDisponible
+    - asignatura: String
+    - modalidad: ModalidadTutoria
+    - enlaceReunion: String
+    - ubicacion: String
+    - notas: String
+    - duracionMinutos: int
+    - estado: EstadoReserva
+}
+
+class ReservaTutoriaBuilder {
+    + conId(id: String): ReservaTutoriaBuilder
+    + paraEstudiante(estudiante: Estudiante): ReservaTutoriaBuilder
+    + conDocente(docente: Docente): ReservaTutoriaBuilder
+    + enHorario(horario: HorarioDisponible): ReservaTutoriaBuilder
+    + paraAsignatura(asignatura: String): ReservaTutoriaBuilder
+    + conModalidad(modalidad: ModalidadTutoria): ReservaTutoriaBuilder
+    + conEnlaceReunion(enlace: String): ReservaTutoriaBuilder
+    + enUbicacion(ubicacion: String): ReservaTutoriaBuilder
+    + conNotas(notas: String): ReservaTutoriaBuilder
+    + conDuracionMinutos(duracion: int): ReservaTutoriaBuilder
+    + construir(): ReservaTutoria
+}
+
+ReservaTutoriaBuilder --> ReservaTutoria : construye
+ReservaTutoria --> Estudiante
+ReservaTutoria --> Docente
+ReservaTutoria --> HorarioDisponible
+ReservaTutoria --> ModalidadTutoria
+ReservaTutoria --> EstadoReserva
+
+@enduml
