@@ -1,136 +1,155 @@
-# Sistema de gestión de tutorías - Ae2 Patrones de diseño
+# Sistema de gestión de tutorías - Ae3 Incremento 1
 
-Este proyecto continúa el Sistema de gestión de tutorías trabajado en Ae1.
+Este repositorio continúa el Sistema de gestión de tutorías trabajado en Ae1 y Ae2.  
+Ae3 no crea un proyecto nuevo: evoluciona la misma base e incorpora **Strategy** y **Observer** porque existen dos puntos de variación concretos.
 
-No se reemplazó el modelo anterior. Se conservaron las clases principales del dominio, repositorio y servicio, y sobre esa misma base se aplicaron los patrones **Factory Method** y **Builder** solicitados en Ae2.
+## 1. Estado inicial recuperado
 
-## Base reutilizada de Ae1
-
-Se mantienen:
+De Ae1 se conservan las entidades y reglas principales:
 
 - `Usuario`
 - `Estudiante`
 - `Docente`
 - `HorarioDisponible`
-- `EstadoReserva`
 - `ReservaTutoria`
-- `Notificador`
-- `NotificadorConsola`
 - `RepositorioReservas`
-- `RepositorioReservasEnMemoria`
 - `ServicioReservas`
 
-También se conservaron las reglas de confirmación, cancelación y reprogramación.
+De Ae2 se mantienen:
 
-## Factory Method
+- **Factory Method** para crear distintas variantes de `Notificador`.
+- **Builder** para construir `ReservaTutoria` con datos obligatorios y opcionales.
 
-### Problema
+## 2. Revisión de patrones de Ae2
 
-En Ae1 existía la interfaz `Notificador` y una implementación por consola. El nuevo requisito plantea varios mecanismos de notificación.
+| Patrón | Problema que resuelve | ¿Se mantiene? | Justificación |
+|---|---|---:|---|
+| Factory Method | La creación de correo, SMS, push y WhatsApp variaba y podía seguir creciendo. | Sí | Evita dispersar la creación concreta de notificadores. |
+| Builder | `ReservaTutoria` posee varios datos obligatorios y opcionales. | Sí | Mantiene una construcción legible, validada y extensible. |
 
-Para evitar que la lógica principal tenga que conocer cómo se construye cada variante, se agregó Factory Method.
+## 3. Problemas reales identificados en Ae3
 
-### Product
+### Problema 1: reglas de cancelación variables
 
-`Notificador`
+La cancelación no tiene por qué seguir la misma regla para todos los tipos de tutoría.  
+Una tutoría normal, prioritaria o grupal puede requerir una política diferente.
 
-### ConcreteProducts iniciales
+**Patrón elegido: Strategy.**
 
-- `NotificadorCorreo`
-- `NotificadorSms`
-- `NotificadorPush`
+Lo estable es el caso de uso `cancelarReserva`.  
+Lo variable es la política que decide si la cancelación es válida.
 
-### Creator
+### Problema 2: varios componentes reaccionan a una reserva
 
-`CreadorNotificador`
+Cuando una reserva se crea, confirma, cancela o reprograma, más de un componente puede reaccionar: notificaciones, auditoría, paneles u otras integraciones.
 
-### ConcreteCreators
+**Patrón elegido: Observer.**
 
-- `CreadorNotificadorCorreo`
-- `CreadorNotificadorSms`
-- `CreadorNotificadorPush`
+Lo estable es el evento del dominio.  
+Lo variable son los receptores que reaccionan al evento.
 
-### Variante adicional
+## 4. Strategy
 
-Se agregó:
+Contrato:
 
-- `NotificadorWhatsApp`
-- `CreadorNotificadorWhatsApp`
+- `PoliticaCancelacion`
 
-Esta variante permite demostrar que se puede extender el patrón sin modificar los productos y creadores ya existentes.
+Estrategias:
 
-## Builder
+- `PoliticaCancelacionNormal`
+- `PoliticaCancelacionPrioritaria`
+- `PoliticaCancelacionGrupal`
 
-### Problema
+Selección:
 
-En Ae1 `ReservaTutoria` tenía un constructor corto con:
+- `RegistroPoliticasCancelacion`
 
-- id
-- estudiante
-- docente
-- horario
+`ServicioReservas` obtiene la estrategia asociada a `TipoTutoria` y la ejecuta antes de cancelar.
 
-En Ae2 la reserva incorpora más configuración. Agregar todos esos parámetros al constructor original lo volvería difícil de leer.
+### Beneficio
 
-### Campos obligatorios
+Se evita llenar el servicio con una cadena creciente de `if/else` para cada política.
 
-- id
-- estudiante
-- docente
-- horario
+### Costo
 
-### Campos opcionales
+Se agregan interfaces y clases pequeñas que solo se justifican porque la política realmente cambia.
 
-- asignatura
-- modalidad
-- enlace de reunión
-- ubicación
-- notas
-- duración
+## 5. Observer
 
-### Valores por defecto
+Contrato:
 
-- modalidad: `ONLINE`
-- duración: `60`
-- estado inicial: `PENDIENTE`
+- `ObservadorReserva`
 
-`ReservaTutoriaBuilder` utiliza Fluent API y valida los campos obligatorios antes de crear la reserva.
+Evento:
 
-## Comparación
+- `EventoReserva`
+- `TipoEventoReserva`
 
-| Criterio | Factory Method | Builder |
-|---|---|---|
-| Problema que resuelve | Crear diferentes tipos de notificador sin acoplar la creación a clases concretas. | Construir una reserva con varios datos obligatorios y opcionales. |
-| Variabilidad principal | Tipo de producto creado. | Configuración del objeto construido. |
-| Participantes | Product, ConcreteProducts, Creator y ConcreteCreators. | Producto y Builder. |
-| Ventaja principal | Extensibilidad. | Construcción legible y validada. |
-| Costo | Aumenta el número de clases. | Agrega un objeto Builder y métodos de configuración. |
-| Cuándo usarlo | Cuando existen variantes de creación que pueden seguir creciendo. | Cuando un constructor empieza a tener demasiados parámetros. |
-| Cuándo evitarlo | Cuando existe una sola variante estable. | Cuando el objeto es muy simple y su constructor sigue siendo claro. |
+Observadores actuales:
 
-## UML
+- `ObservadorNotificacionReserva`
+- `ObservadorAuditoriaReserva`
 
-- `docs/factory-method.puml`
-- `docs/builder.puml`
-- `docs/modelo-clases.puml`
+`ServicioReservas` publica los eventos y no necesita conocer el detalle de lo que hace cada observador.
 
-## Compilar
+### Beneficio
+
+Un nuevo receptor puede agregarse sin modificar los casos de uso de confirmar, cancelar o reprogramar.
+
+### Costo
+
+El flujo deja de ser totalmente lineal porque existen reacciones desacopladas al evento.
+
+## 6. Relación con SOLID
+
+- **SRP:** las políticas de cancelación, las notificaciones, la auditoría, el repositorio y el servicio tienen responsabilidades separadas.
+- **OCP:** nuevas estrategias u observadores pueden incorporarse mediante nuevas implementaciones.
+- **LSP:** las implementaciones de `PoliticaCancelacion`, `ObservadorReserva` y `Notificador` respetan sus contratos.
+- **ISP:** las interfaces son pequeñas y específicas.
+- **DIP:** `ServicioReservas` trabaja con abstracciones como `RepositorioReservas`, `ObservadorReserva` y `PoliticaCancelacion`.
+
+## 7. Cohesión y acoplamiento
+
+La cohesión mejora porque cada clase concentra una responsabilidad concreta.  
+El acoplamiento disminuye porque el servicio ya no contiene todas las reacciones ni todas las reglas variables.
+
+## 8. Estructura principal
+
+```text
+src/main/java/edu/uees/tutorias/
+├── app/
+├── builder/
+├── domain/
+├── factory/
+├── notification/
+├── observer/
+├── repository/
+├── service/
+└── strategy/
+```
+
+## 9. UML
+
+- `docs/uml-incremento1.puml`
+- `docs/uml-incremento1.png`
+
+El diagrama incluye las relaciones principales de Factory Method, Builder, Strategy y Observer y mantiene los mismos nombres usados en Java.
+
+## 10. Compilar
 
 ```bash
 mvn clean compile
 ```
 
-## Ejecutar pruebas
+## 11. Ejecutar pruebas
 
 ```bash
 mvn clean test
 ```
 
-El proyecto conserva las pruebas del flujo de reservas de Ae1 y agrega pruebas específicas para Factory Method y Builder.
+## 12. Ejecutar demostración
 
-## Ejecutar demostración
-
-Windows:
+Windows PowerShell:
 
 ```powershell
 java -cp target\classes edu.uees.tutorias.app.Main
@@ -142,8 +161,24 @@ Linux/macOS:
 java -cp target/classes edu.uees.tutorias.app.Main
 ```
 
-## Uso de inteligencia artificial
+## 13. Verificación esperada
 
-Para esta actividad utilicé inteligencia artificial como apoyo para revisar la estructura, ordenar la documentación y validar ejemplos de implementación.
+La ejecución demuestra:
 
-Revisé, probé y adapté el contenido generado, y puedo explicar y justificar las clases, patrones y decisiones presentadas.
+1. creación de una reserva;
+2. notificación y auditoría mediante Observer;
+3. confirmación;
+4. reprogramación;
+5. cancelación aplicando Strategy;
+6. estado final `CANCELADA`.
+
+## 14. Decisión de diseño
+
+No se agregaron más patrones solo por aumentar la cantidad.  
+Se mantuvieron Factory Method y Builder porque continúan resolviendo problemas existentes y se incorporaron únicamente Strategy y Observer por los dos puntos de variación identificados en Ae3.
+
+## 15. Uso de inteligencia artificial
+
+Utilicé inteligencia artificial como herramienta de apoyo para revisar la estructura del proyecto, analizar alternativas de diseño, mejorar la redacción de la documentación y revisar ejemplos de implementación.
+
+Las decisiones de diseño, el código, las pruebas y la relación UML-Java fueron revisadas y comprendidas antes de incluirlas en el proyecto.

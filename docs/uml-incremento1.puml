@@ -1,0 +1,128 @@
+@startuml
+skinparam classAttributeIconSize 0
+skinparam packageStyle rectangle
+left to right direction
+
+package domain {
+  abstract class Usuario {
+    - id: String
+    - nombre: String
+    - correo: String
+  }
+
+  class Estudiante
+  class Docente
+  class HorarioDisponible
+  class ReservaTutoria {
+    - estado: EstadoReserva
+    - tipoTutoria: TipoTutoria
+    + confirmar(): void
+    + cancelar(): void
+    + reprogramar(nuevoHorario): void
+  }
+
+  enum EstadoReserva
+  enum TipoTutoria
+
+  Usuario <|-- Estudiante
+  Usuario <|-- Docente
+  ReservaTutoria --> Estudiante
+  ReservaTutoria --> Docente
+  ReservaTutoria --> HorarioDisponible
+  ReservaTutoria --> EstadoReserva
+  ReservaTutoria --> TipoTutoria
+}
+
+package builder {
+  class ReservaTutoriaBuilder {
+    + conTipoTutoria(tipo): ReservaTutoriaBuilder
+    + construir(): ReservaTutoria
+  }
+  ReservaTutoriaBuilder ..> ReservaTutoria : construye
+}
+
+package notification {
+  interface Notificador {
+    + notificar(usuario, mensaje): void
+  }
+  class NotificadorCorreo
+  class NotificadorSms
+  class NotificadorPush
+  class NotificadorWhatsApp
+
+  Notificador <|.. NotificadorCorreo
+  Notificador <|.. NotificadorSms
+  Notificador <|.. NotificadorPush
+  Notificador <|.. NotificadorWhatsApp
+}
+
+package factory {
+  abstract class CreadorNotificador {
+    + crearNotificador(): Notificador
+  }
+  class CreadorNotificadorCorreo
+  class CreadorNotificadorSms
+  class CreadorNotificadorPush
+  class CreadorNotificadorWhatsApp
+
+  CreadorNotificador <|-- CreadorNotificadorCorreo
+  CreadorNotificador <|-- CreadorNotificadorSms
+  CreadorNotificador <|-- CreadorNotificadorPush
+  CreadorNotificador <|-- CreadorNotificadorWhatsApp
+  CreadorNotificador ..> Notificador
+}
+
+package strategy {
+  interface PoliticaCancelacion {
+    + validarCancelacion(reserva): void
+  }
+
+  class PoliticaCancelacionNormal
+  class PoliticaCancelacionPrioritaria
+  class PoliticaCancelacionGrupal
+  class RegistroPoliticasCancelacion
+
+  PoliticaCancelacion <|.. PoliticaCancelacionNormal
+  PoliticaCancelacion <|.. PoliticaCancelacionPrioritaria
+  PoliticaCancelacion <|.. PoliticaCancelacionGrupal
+  RegistroPoliticasCancelacion --> PoliticaCancelacion
+}
+
+package observer {
+  interface ObservadorReserva {
+    + actualizar(evento): void
+  }
+
+  class ObservadorNotificacionReserva
+  class ObservadorAuditoriaReserva
+  class EventoReserva
+  enum TipoEventoReserva
+
+  ObservadorReserva <|.. ObservadorNotificacionReserva
+  ObservadorReserva <|.. ObservadorAuditoriaReserva
+  ObservadorNotificacionReserva --> Notificador
+  EventoReserva --> ReservaTutoria
+  EventoReserva --> TipoEventoReserva
+}
+
+package service {
+  class ServicioReservas {
+    + agregarObservador(observador): void
+    + crearReserva(...): ReservaTutoria
+    + confirmarReserva(id): void
+    + cancelarReserva(id): void
+    + reprogramarReserva(id, horario): void
+  }
+}
+
+interface RepositorioReservas
+class RepositorioReservasEnMemoria
+
+RepositorioReservas <|.. RepositorioReservasEnMemoria
+ServicioReservas --> RepositorioReservas
+ServicioReservas --> RegistroPoliticasCancelacion
+ServicioReservas "1" o-- "*" ObservadorReserva
+ServicioReservas ..> ReservaTutoriaBuilder
+ServicioReservas ..> EventoReserva
+
+@enduml
