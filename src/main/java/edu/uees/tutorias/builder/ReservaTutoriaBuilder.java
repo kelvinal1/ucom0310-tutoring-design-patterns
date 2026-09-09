@@ -5,6 +5,7 @@ import edu.uees.tutorias.domain.Estudiante;
 import edu.uees.tutorias.domain.HorarioDisponible;
 import edu.uees.tutorias.domain.ModalidadTutoria;
 import edu.uees.tutorias.domain.ReservaTutoria;
+import edu.uees.tutorias.domain.TipoTutoria;
 
 public class ReservaTutoriaBuilder {
 
@@ -19,7 +20,7 @@ public class ReservaTutoriaBuilder {
     private String ubicacion;
     private String notas;
     private int duracionMinutos = 60;
-
+    private TipoTutoria tipoTutoria = TipoTutoria.NORMAL;
 
     public ReservaTutoriaBuilder conId(String id) {
         this.id = id;
@@ -71,8 +72,11 @@ public class ReservaTutoriaBuilder {
         return this;
     }
 
+    public ReservaTutoriaBuilder conTipoTutoria(TipoTutoria tipoTutoria) {
+        this.tipoTutoria = tipoTutoria;
+        return this;
+    }
 
-    // Antes de construir revisamos los datos obligatorios y algunas reglas simples.
     public ReservaTutoria construir() {
         validarObligatorios();
         validarConfiguracion();
@@ -87,10 +91,10 @@ public class ReservaTutoriaBuilder {
                 enlaceReunion,
                 ubicacion,
                 notas,
-                duracionMinutos
+                duracionMinutos,
+                tipoTutoria
         );
     }
-
 
     private void validarObligatorios() {
         if (id == null || id.isBlank()) {
@@ -113,6 +117,10 @@ public class ReservaTutoriaBuilder {
     private void validarConfiguracion() {
         if (modalidad == null) {
             throw new IllegalStateException("La modalidad no puede ser nula");
+        }
+
+        if (tipoTutoria == null) {
+            throw new IllegalStateException("El tipo de tutoría no puede ser nulo");
         }
 
         if (duracionMinutos <= 0) {

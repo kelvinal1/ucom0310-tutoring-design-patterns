@@ -11,16 +11,15 @@ public class ReservaTutoria {
     private HorarioDisponible horario;
     private EstadoReserva estado;
 
-    // Estos datos aparecen en Ae2 porque la reserva ahora tiene más configuración.
     private final String asignatura;
     private final ModalidadTutoria modalidad;
     private final String enlaceReunion;
     private final String ubicacion;
     private final String notas;
     private final int duracionMinutos;
+    private final TipoTutoria tipoTutoria;
 
-
-    // Se conserva el constructor original de Ae1 para mantener compatibilidad.
+    // Constructor original de Ae1: se conserva por compatibilidad.
     public ReservaTutoria(
             String id,
             Estudiante estudiante,
@@ -37,12 +36,12 @@ public class ReservaTutoria {
                 null,
                 null,
                 null,
-                60
+                60,
+                TipoTutoria.NORMAL
         );
     }
 
-
-    // El Builder utiliza este constructor después de validar toda la configuración.
+    // Constructor de Ae2: también se conserva.
     public ReservaTutoria(
             String id,
             Estudiante estudiante,
@@ -55,11 +54,41 @@ public class ReservaTutoria {
             String notas,
             int duracionMinutos
     ) {
+        this(
+                id,
+                estudiante,
+                docente,
+                horario,
+                asignatura,
+                modalidad,
+                enlaceReunion,
+                ubicacion,
+                notas,
+                duracionMinutos,
+                TipoTutoria.NORMAL
+        );
+    }
+
+    // Constructor utilizado por el Builder en Ae3.
+    public ReservaTutoria(
+            String id,
+            Estudiante estudiante,
+            Docente docente,
+            HorarioDisponible horario,
+            String asignatura,
+            ModalidadTutoria modalidad,
+            String enlaceReunion,
+            String ubicacion,
+            String notas,
+            int duracionMinutos,
+            TipoTutoria tipoTutoria
+    ) {
         this.id = Objects.requireNonNull(id, "El identificador de la reserva es obligatorio");
         this.estudiante = Objects.requireNonNull(estudiante, "El estudiante es obligatorio");
         this.docente = Objects.requireNonNull(docente, "El docente es obligatorio");
         this.horario = Objects.requireNonNull(horario, "El horario disponible es obligatorio");
         this.modalidad = Objects.requireNonNull(modalidad, "La modalidad es obligatoria");
+        this.tipoTutoria = Objects.requireNonNull(tipoTutoria, "El tipo de tutoría es obligatorio");
 
         if (id.isBlank()) {
             throw new IllegalArgumentException("El identificador de la reserva es obligatorio");
@@ -78,7 +107,6 @@ public class ReservaTutoria {
         horario.reservar();
         estado = EstadoReserva.PENDIENTE;
     }
-
 
     public void confirmar() {
         if (estado == EstadoReserva.CANCELADA) {
@@ -110,13 +138,9 @@ public class ReservaTutoria {
 
         horario.liberar();
         nuevoHorario.reservar();
-
         horario = nuevoHorario;
-
-        // Cuando se reprograma, toca confirmarla otra vez.
         estado = EstadoReserva.PENDIENTE;
     }
-
 
     public String getId() {
         return id;
@@ -160,5 +184,9 @@ public class ReservaTutoria {
 
     public int getDuracionMinutos() {
         return duracionMinutos;
+    }
+
+    public TipoTutoria getTipoTutoria() {
+        return tipoTutoria;
     }
 }
