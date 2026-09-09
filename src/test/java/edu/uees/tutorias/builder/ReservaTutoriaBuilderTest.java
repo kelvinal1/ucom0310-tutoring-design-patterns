@@ -6,6 +6,7 @@ import edu.uees.tutorias.domain.Estudiante;
 import edu.uees.tutorias.domain.HorarioDisponible;
 import edu.uees.tutorias.domain.ModalidadTutoria;
 import edu.uees.tutorias.domain.ReservaTutoria;
+import edu.uees.tutorias.domain.TipoTutoria;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
@@ -31,6 +32,7 @@ class ReservaTutoriaBuilderTest {
         assertEquals(ModalidadTutoria.ONLINE, reserva.getModalidad());
         assertEquals(60, reserva.getDuracionMinutos());
         assertEquals(EstadoReserva.PENDIENTE, reserva.getEstado());
+        assertEquals(TipoTutoria.NORMAL, reserva.getTipoTutoria());
     }
 
     @Test
@@ -78,7 +80,6 @@ class ReservaTutoriaBuilderTest {
 
         assertThrows(IllegalStateException.class, builder::construir);
     }
-
 
     private HorarioDisponible horario(String id) {
         return new HorarioDisponible(
