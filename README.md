@@ -182,3 +182,36 @@ Se mantuvieron Factory Method y Builder porque continúan resolviendo problemas 
 Utilicé inteligencia artificial como herramienta de apoyo para revisar la estructura del proyecto, analizar alternativas de diseño, mejorar la redacción de la documentación y revisar ejemplos de implementación.
 
 Las decisiones de diseño, el código, las pruebas y la relación UML-Java fueron revisadas y comprendidas antes de incluirlas en el proyecto.
+
+
+# Ae4 - Refactorización
+
+Ae4 continúa sobre el mismo proyecto. En esta actividad no agregué nuevas funcionalidades; trabajé únicamente sobre la estructura interna manteniendo el comportamiento que ya tenía el sistema.
+
+La línea base se registró antes de modificar código y se verificó con compilación, 16 pruebas y ejecución del flujo principal.
+
+Los cambios aplicados fueron:
+
+1. extracción del guardado y notificación repetidos en `ServicioReservas`;
+2. extracción de la validación de reserva activa en `ReservaTutoria`;
+3. simplificación de los `switch` paralelos de `ObservadorNotificacionReserva`;
+4. separación de las validaciones de configuración en `ReservaTutoriaBuilder`.
+
+La matriz de Code Smells, el plan, los fragmentos antes/después y la comparación técnica están documentados en:
+
+- `docs/ae4-refactorizacion.md`
+
+## Verificación Ae4
+
+```bash
+mvn clean compile
+mvn clean test
+```
+
+Windows:
+
+```powershell
+java -cp target\classes edu.uees.tutorias.app.Main
+```
+
+El resultado esperado debe conservar los mismos eventos, mensajes, estados y reglas observables de la línea base.
