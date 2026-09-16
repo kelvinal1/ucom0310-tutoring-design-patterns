@@ -30,7 +30,7 @@ public class ServicioReservas {
         this(repositorio, new RegistroPoliticasCancelacion());
     }
 
-    // Constructor compatible con Ae1/Ae2.
+    // Se conserva este constructor porque todavía lo utilizan pruebas y código de Ae1/Ae2.
     public ServicioReservas(
             RepositorioReservas repositorio,
             Notificador notificador
@@ -94,9 +94,7 @@ public class ServicioReservas {
                 .conTipoTutoria(tipoTutoria)
                 .construir();
 
-        repositorio.guardar(reserva);
-        publicar(reserva, TipoEventoReserva.CREADA);
-
+        guardarYNotificar(reserva, TipoEventoReserva.CREADA);
         return reserva;
     }
 
@@ -104,8 +102,7 @@ public class ServicioReservas {
         ReservaTutoria reserva = obtenerReserva(reservaId);
 
         reserva.confirmar();
-        repositorio.guardar(reserva);
-        publicar(reserva, TipoEventoReserva.CONFIRMADA);
+        guardarYNotificar(reserva, TipoEventoReserva.CONFIRMADA);
     }
 
     public void cancelarReserva(String reservaId) {
@@ -115,8 +112,7 @@ public class ServicioReservas {
         politica.validarCancelacion(reserva);
 
         reserva.cancelar();
-        repositorio.guardar(reserva);
-        publicar(reserva, TipoEventoReserva.CANCELADA);
+        guardarYNotificar(reserva, TipoEventoReserva.CANCELADA);
     }
 
     public void reprogramarReserva(String reservaId, String nuevoHorarioId) {
@@ -130,13 +126,24 @@ public class ServicioReservas {
         HorarioDisponible nuevoHorario = docente.obtenerHorario(nuevoHorarioId);
 
         reserva.reprogramar(nuevoHorario);
-        repositorio.guardar(reserva);
-        publicar(reserva, TipoEventoReserva.REPROGRAMADA);
+        guardarYNotificar(reserva, TipoEventoReserva.REPROGRAMADA);
     }
 
-    private void publicar(ReservaTutoria reserva, TipoEventoReserva tipo) {
-        EventoReserva evento = new EventoReserva(reserva, tipo);
-        List.copyOf(observadores).forEach(observador -> observador.actualizar(evento));
+    private void guardarYNotificar(
+            ReservaTutoria reserva,
+            TipoEventoReserva tipoEvento
+    ) {
+        repositorio.guardar(reserva);
+        notificarObservadores(reserva, tipoEvento);
+    }
+
+    private void notificarObservadores(
+            ReservaTutoria reserva,
+            TipoEventoReserva tipoEvento
+    ) {
+        EventoReserva evento = new EventoReserva(reserva, tipoEvento);
+        List.copyOf(observadores)
+                .forEach(observador -> observador.actualizar(evento));
     }
 
     private ReservaTutoria obtenerReserva(String reservaId) {
