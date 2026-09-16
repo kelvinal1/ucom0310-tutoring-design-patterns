@@ -15,29 +15,43 @@ public class ObservadorNotificacionReserva implements ObservadorReserva {
 
     @Override
     public void actualizar(EventoReserva evento) {
-        ReservaTutoria reserva = evento.reserva();
-        String mensajeEstudiante = mensajeEstudiante(evento.tipo());
-        String mensajeDocente = mensajeDocente(evento.tipo());
+        notificarSegunEvento(evento.reserva(), evento.tipo());
+    }
 
+    private void notificarSegunEvento(
+            ReservaTutoria reserva,
+            TipoEventoReserva tipo
+    ) {
+        switch (tipo) {
+            case CREADA -> notificarUsuarios(
+                    reserva,
+                    "Tu tutoría ya quedó reservada.",
+                    "Un estudiante reservó uno de tus horarios."
+            );
+            case CONFIRMADA -> notificarUsuarios(
+                    reserva,
+                    "Tu tutoría ya quedó confirmada.",
+                    "La tutoría ya quedó confirmada."
+            );
+            case CANCELADA -> notificarUsuarios(
+                    reserva,
+                    "Tu tutoría fue cancelada.",
+                    "La tutoría fue cancelada."
+            );
+            case REPROGRAMADA -> notificarUsuarios(
+                    reserva,
+                    "Tu tutoría fue reprogramada.",
+                    "La tutoría fue reprogramada."
+            );
+        }
+    }
+
+    private void notificarUsuarios(
+            ReservaTutoria reserva,
+            String mensajeEstudiante,
+            String mensajeDocente
+    ) {
         notificador.notificar(reserva.getEstudiante(), mensajeEstudiante);
         notificador.notificar(reserva.getDocente(), mensajeDocente);
-    }
-
-    private String mensajeEstudiante(TipoEventoReserva tipo) {
-        return switch (tipo) {
-            case CREADA -> "Tu tutoría ya quedó reservada.";
-            case CONFIRMADA -> "Tu tutoría ya quedó confirmada.";
-            case CANCELADA -> "Tu tutoría fue cancelada.";
-            case REPROGRAMADA -> "Tu tutoría fue reprogramada.";
-        };
-    }
-
-    private String mensajeDocente(TipoEventoReserva tipo) {
-        return switch (tipo) {
-            case CREADA -> "Un estudiante reservó uno de tus horarios.";
-            case CONFIRMADA -> "La tutoría ya quedó confirmada.";
-            case CANCELADA -> "La tutoría fue cancelada.";
-            case REPROGRAMADA -> "La tutoría fue reprogramada.";
-        };
     }
 }
