@@ -115,28 +115,49 @@ public class ReservaTutoriaBuilder {
     }
 
     private void validarConfiguracion() {
+        validarModalidad();
+        validarTipoTutoria();
+        validarDuracion();
+        validarDatosSegunModalidad();
+    }
+
+    private void validarModalidad() {
         if (modalidad == null) {
             throw new IllegalStateException("La modalidad no puede ser nula");
         }
+    }
 
+    private void validarTipoTutoria() {
         if (tipoTutoria == null) {
             throw new IllegalStateException("El tipo de tutoría no puede ser nulo");
         }
+    }
 
+    private void validarDuracion() {
         if (duracionMinutos <= 0) {
             throw new IllegalStateException("La duración debe ser mayor que cero");
         }
+    }
 
-        if (modalidad == ModalidadTutoria.ONLINE
-                && enlaceReunion != null
-                && enlaceReunion.isBlank()) {
-            throw new IllegalStateException("El enlace de reunión no puede estar vacío");
+    private void validarDatosSegunModalidad() {
+        if (modalidad == ModalidadTutoria.ONLINE) {
+            validarTextoOpcional(
+                    enlaceReunion,
+                    "El enlace de reunión no puede estar vacío"
+            );
         }
 
-        if (modalidad == ModalidadTutoria.PRESENCIAL
-                && ubicacion != null
-                && ubicacion.isBlank()) {
-            throw new IllegalStateException("La ubicación no puede estar vacía");
+        if (modalidad == ModalidadTutoria.PRESENCIAL) {
+            validarTextoOpcional(
+                    ubicacion,
+                    "La ubicación no puede estar vacía"
+            );
+        }
+    }
+
+    private void validarTextoOpcional(String valor, String mensaje) {
+        if (valor != null && valor.isBlank()) {
+            throw new IllegalStateException(mensaje);
         }
     }
 }
