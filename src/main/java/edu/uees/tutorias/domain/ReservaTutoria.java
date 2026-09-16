@@ -109,10 +109,7 @@ public class ReservaTutoria {
     }
 
     public void confirmar() {
-        if (estado == EstadoReserva.CANCELADA) {
-            throw new IllegalStateException("No se puede confirmar una reserva cancelada");
-        }
-
+        validarReservaActiva("No se puede confirmar una reserva cancelada");
         estado = EstadoReserva.CONFIRMADA;
     }
 
@@ -127,10 +124,7 @@ public class ReservaTutoria {
 
     public void reprogramar(HorarioDisponible nuevoHorario) {
         Objects.requireNonNull(nuevoHorario, "El nuevo horario disponible es obligatorio");
-
-        if (estado == EstadoReserva.CANCELADA) {
-            throw new IllegalStateException("No se puede reprogramar una reserva cancelada");
-        }
+        validarReservaActiva("No se puede reprogramar una reserva cancelada");
 
         if (!nuevoHorario.estaDisponible()) {
             throw new IllegalStateException("El nuevo horario no está disponible");
@@ -140,6 +134,12 @@ public class ReservaTutoria {
         nuevoHorario.reservar();
         horario = nuevoHorario;
         estado = EstadoReserva.PENDIENTE;
+    }
+
+    private void validarReservaActiva(String mensaje) {
+        if (estado == EstadoReserva.CANCELADA) {
+            throw new IllegalStateException(mensaje);
+        }
     }
 
     public String getId() {
